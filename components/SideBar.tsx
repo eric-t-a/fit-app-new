@@ -72,18 +72,26 @@ const SideBar = ({ open, setOpen, children }: Props) => {
         });
     },[])
 
-    function updateOpacity({nativeEvent}) {
-        backgroundOpacity.setValue(0.625 * (1 - nativeEvent.absoluteX / windowWidth) )
+    function isHoldingSideBar(nativeEvent){
+        const xStart = nativeEvent.absoluteX - nativeEvent.translationX;
+        if(xStart >= 0.1*windowWidth && xStart <= 0.3*windowWidth) return true;
+        return false;
     }
 
-    const onPanGesture = Animated.event([{
-        nativeEvent: { absoluteX: absoluteX }
-    }], {
+    function updateOpacity({nativeEvent}) {
+        if(!isHoldingSideBar(nativeEvent)) return;
+        absoluteX.setValue(nativeEvent.absoluteX);
+        backgroundOpacity.setValue(0.625 * (1 - nativeEvent.absoluteX / windowWidth));
+        
+    }
+
+    const onPanGesture = Animated.event([], {
         useNativeDriver: false,
         listener: updateOpacity
     });
 
     const onPanEnded = ({nativeEvent}) => {
+        if(!isHoldingSideBar(nativeEvent)) return;
         if(nativeEvent.absoluteX > windowWidth / 2){
             onClosePanel(nativeEvent.absoluteX)
         }

@@ -34,7 +34,7 @@ const RunningInfoView = ({ runningTime, distance, calories, start_time, pace, se
                 <View style={styles.infoStats}>
                     <View style={styles.infoBlock}>
                         <Text style={{...styles.infoTextValue, ...styles.infoText}}>
-                            {floatTo2Decimal(distance / 1000)}
+                            {floatTo2Decimal(distance / 1000).toFixed(2)}
                         </Text>
                         <Text style={styles.infoText}>
                             km
@@ -42,7 +42,7 @@ const RunningInfoView = ({ runningTime, distance, calories, start_time, pace, se
                     </View>
                     <View style={styles.infoBlock}>
                         <Text style={{...styles.infoTextValue, ...styles.infoText}}>
-                            {calories}
+                            {Math.floor(calories)}
                         </Text>
                         <Text style={styles.infoText}>
                             kcal

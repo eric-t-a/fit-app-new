@@ -25,7 +25,7 @@ function appendCoordinates(coord: LatLng){
     const timeNow = new Date();
     if(runningInfo.coordinates.length){
         const lastCoord = runningInfo.coordinates[runningInfo.coordinates.length - 1];
-        const deltaTime = Math.floor((timeNow.getTime() - lastCoord.time.getTime()) / 1000); // seconds
+        const deltaTime = (timeNow.getTime() - lastCoord.time.getTime()) / 1000; // seconds
 
         deltaDistance = getDistanceFromLatLonInMeters(lastCoord.latitude, lastCoord.longitude, coord.latitude, coord.longitude);
         deltaDistance = floatTo1Decimal(deltaDistance)
@@ -34,7 +34,7 @@ function appendCoordinates(coord: LatLng){
     }
     setRunningInfo({
         ...runningInfo, 
-        calories: runningInfo.calories + Math.floor(deltaCalories),
+        calories: runningInfo.calories + deltaCalories,
         distance: runningInfo.distance + deltaDistance,
         isRunning: true, 
         coordinates: [...runningInfo.coordinates, {...coord, time: new Date()}]

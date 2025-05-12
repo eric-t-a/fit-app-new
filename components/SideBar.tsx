@@ -74,7 +74,7 @@ const SideBar = ({ open, setOpen, children }: Props) => {
 
     function isHoldingSideBar(nativeEvent){
         const xStart = nativeEvent.absoluteX - nativeEvent.translationX;
-        if(xStart >= 0.1*windowWidth && xStart <= 0.3*windowWidth) return true;
+        if(xStart >= 0.1*windowWidth && xStart <= 0.35*windowWidth) return true;
         return false;
     }
 
@@ -169,12 +169,12 @@ const styles = StyleSheet.create({
         height: '100%'
     },
     innerContainer: {
-        backgroundColor: 'black',
+        backgroundColor: '#1a1a1a',
         position: 'relative',
         height: '100%',
         width: '100%',
         right: 0,
-        top: -24,
+        top: 0,
         padding: 24,
     }
 });

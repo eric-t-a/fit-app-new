@@ -1,5 +1,5 @@
 import { Image, StyleSheet, Platform, View, TouchableOpacity, Text, StatusBar, Dimensions } from 'react-native';
-import Map, { MapPolyline, PROVIDER_GOOGLE } from 'react-native-maps';
+import Map, { Circle, MapPolyline, PROVIDER_GOOGLE } from 'react-native-maps';
 
 import useLocation from '../../hooks/useLocation';
 import React, { useEffect, useRef, useState } from 'react';
@@ -8,8 +8,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import RunningInfoView from '../../components/RunningInfo';
 import SideBar from '../../components/SideBar';
 import { Line, Svg } from 'react-native-svg';
-import { getMaxMinCoordinates } from '../../utils/helper';
+import { floatTo2Decimal, formatTime, getFullDayDescription, getMaxMinCoordinates } from '../../utils/helper';
 import { useSelector } from 'react-redux';
+import { HistoryRunningInfo, RunningInfo } from '../../store/runningInfo';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { FlatList } from 'react-native-gesture-handler';
 
 export default function IndexRun() {
   const { currentPosition, errorMsg } = useLocation();
@@ -23,8 +26,8 @@ export default function IndexRun() {
     mapRef.current.animateToRegion({
       latitude: currentPosition.latitude + 0.0001,
       longitude: currentPosition.longitude,
-      latitudeDelta: 0.001,
-      longitudeDelta: 0.001
+      latitudeDelta: 0.005,
+      longitudeDelta: 0.005
     })
   },[currentPosition.latitude, currentPosition.longitude]);
 
@@ -35,21 +38,23 @@ export default function IndexRun() {
     }
     startRunning(currentPosition);
   }
-  console.log('curpos',currentPosition)
 
   return (
     <View style={{flex: 1}}>
     
       <View style={{...styles.container, paddingTop: insets.top}}>
         <SideBarList listOpen={listOpen} setListOpen={setListOpen} runningHistory={runningHistory}/>
-        <RunningInfoView 
-          runningTime={runningTime} 
-          distance={runningInfo.distance} 
-          calories={runningInfo.calories}
-          start_time={runningInfo.start_time}
-          pace={runningInfo.pace}
-          setListOpen={setListOpen}
-        />
+        <View style={{...styles.infoContainer, top: insets.top}}>
+          <RunningInfoView 
+            runningTime={runningTime} 
+            distance={runningInfo.distance} 
+            calories={runningInfo.calories}
+            start_time={runningInfo.start_time}
+            pace={runningInfo.pace}
+            setListOpen={setListOpen}
+          />
+        </View>
+
         
         <Map 
           ref={mapRef}
@@ -67,6 +72,7 @@ export default function IndexRun() {
             strokeColor="#ff0000"
             coordinates={[...runningInfo.coordinates]}
           />
+          <Circle center={currentPosition} radius={10} fillColor='#70b8ff' strokeColor='#c2e6ff' strokeWidth={3} zIndex={10}/>
         </Map>
         <TouchableOpacity 
           style={styles.button} 
@@ -83,38 +89,38 @@ export default function IndexRun() {
 }
 
 const SideBarList = React.memo(({listOpen, setListOpen}) => {
-  const windowWidth = Dimensions.get('window').width;
-  const runningHistory = useSelector(state => state.runningHistory);
+  const runningHistory: HistoryRunningInfo[] = useSelector(state => state.runningHistory);
 
   return(
     <SideBar open={listOpen} setOpen={setListOpen}>
-      {runningHistory.map((history, i) => {
-        const { maxLat, minLat, maxLong, minLong } = getMaxMinCoordinates(history.coordinates);
-        const widthNormalizer = 0.8*windowWidth - 48;
-        const heightNormalizer = 0.5*windowWidth;
+      <FlatList
+        data={[...runningHistory].sort((p1, p2) => (new Date(p1.start_time) < new Date(p2.start_time)) ? 1 : -1)}
+        renderItem={({ item, index }) => {
+          const { distance, end_time, start_time, calories, pace }: RunningInfo = item;
 
-        return(
-          <View key={i} style={{width: '100%'}}>
-            <Text style={{color: 'white'}}>oi</Text>
-            <Svg height={heightNormalizer} width={widthNormalizer}>
-              {history.coordinates.map((coord, i) => {
-                if(i == history.coordinates.length - 1) return;
+          const startTime = new Date(start_time);
 
-                const next = history.coordinates[i+1];
-                
-                let latStart = (coord.latitude - minLat) * heightNormalizer / (maxLat - minLat);
-                let latEnd = (next.latitude - minLat) * heightNormalizer / (maxLat - minLat);
-                let longStart = (coord.longitude - minLong) * widthNormalizer / (maxLong - minLong);
-                let longEnd = (next.longitude - minLong) * widthNormalizer / (maxLong - minLong);
+          const totalSec = ((new Date(end_time)).getTime() - startTime.getTime()) / 1000;
+          
+          const customTopBorder = index == 0 ? { borderTopWidth: 0, paddingTop: 0} : { borderTopWidth: 1};
 
-                return(
-                  <Line key={i} x1={longStart} y1={latStart} x2={longEnd} y2={latEnd} stroke="red" strokeWidth="2" />
-                );
-              })}
-            </Svg>
-          </View>
-        );
-      })}
+          return(
+            <View style={{...styles.sideBarItem, ...customTopBorder }}>
+              <Text style={styles.italicText}>{getFullDayDescription(startTime)}</Text>
+              <RunningInfoView 
+                key={index}
+                runningTime={formatTime(totalSec)}
+                distance={distance}
+                calories={calories}
+                start_time={start_time}
+                pace={pace}
+                aditionalStyles={{paddingTop: 0}}
+              />
+            </View>
+
+          );
+        }}
+      />
     </SideBar>
   );
 })
@@ -129,18 +135,16 @@ const styles = StyleSheet.create({
     height: '100%'
   },
   infoContainer: {
-    flex: 1,
     height: '30%',
+    maxHeight: 190,
     backgroundColor: "#000",
     position: "absolute",
     left: 0,
     right: 0,
     borderBottomRightRadius: 17,
     borderBottomLeftRadius: 17,
-    justifyContent: "center",
-    alignItems: "center",
     zIndex: 1,
-  },
+},
   infoText: { 
     color: "#fff"
   },
@@ -160,5 +164,33 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     fontSize: 16
+  },
+  sideBarItem: {
+    width: '100%',
+    paddingTop: 18,
+    paddingBottom: 18,
+    borderTopColor: '#ffffff47',
+  },
+  flex: {
+    flex: 1, 
+    flexDirection: 'row',
+    marginTop: 6,
+  },
+  halfWidth: {
+    width: '50%'
+  },
+  italicText: {
+    color: 'white',
+    fontStyle: 'italic'
+  },
+  majorText: {
+    color: 'white',
+    fontSize: 30,
+    textAlign: 'center'
+  },
+  minorText: {
+    color: 'white',
+    fontSize: 12,
+    textAlign: 'center'
   }
 });

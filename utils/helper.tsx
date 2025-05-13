@@ -131,6 +131,18 @@ function getMaxMinCoordinates(coords: LatLng[] | Coordinates[]){
 
     return { maxLat, minLat, maxLong, minLong };
 }
+
+function getFullDayDescription(date: Date) {
+  const options = {  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour12: false };
+  const fullDay = date.toLocaleTimeString('en-us', options);
+
+  const formattedDay = fullDay.split(' at ')[0];
+  const thisYear = String((new Date()).getFullYear());
+
+  if(formattedDay.includes(thisYear)) return formattedDay.split(`, ${thisYear}`)[0];
+  
+  return formattedDay;
+}
 export { 
     timeRunning, 
     shouldUpdateCoordinates, 
@@ -139,5 +151,7 @@ export {
     floatTo2Decimal, 
     calculateCalories,
     getPace,
-    getMaxMinCoordinates
+    getMaxMinCoordinates,
+    formatTime,
+    getFullDayDescription
 }

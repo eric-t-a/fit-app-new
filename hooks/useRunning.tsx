@@ -86,7 +86,8 @@ const useRunning = () => {
         setRunningTime(timeRunning(null));
         appendInfoToHistory({
             ...runningInfo,
-            end_time: new Date()
+            end_time: new Date(),
+            coordinates: []
         });
         setRunningInfo({...runningEmptyState})
     }

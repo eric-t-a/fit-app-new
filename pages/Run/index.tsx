@@ -31,12 +31,12 @@ export default function IndexRun() {
     })
   },[currentPosition.latitude, currentPosition.longitude]);
 
-  function startStopRun(){
+  async function startStopRun(){
     if(runningInfo.isRunning){ 
-      stopRunning();
+      await stopRunning();
       return;
     }
-    startRunning(currentPosition);
+    await startRunning(currentPosition);
   }
 
   return (
@@ -77,7 +77,7 @@ export default function IndexRun() {
         <TouchableOpacity 
           style={styles.button} 
           activeOpacity={0.6} 
-          onPress={() => startStopRun()}
+          onPress={async () => await startStopRun()}
         >
           <Text style={styles.buttonTitle}>
             {runningInfo.isRunning ? "Finish" : "Start"}

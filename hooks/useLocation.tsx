@@ -11,6 +11,34 @@ const LOCATION_TASK_NAME = 'background-location-task';
 
 const isDev = true;
 
+var fgLocation: any = null;
+
+export async function startBgLocationUpdates(){
+    await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+        accuracy: Location.Accuracy.BestForNavigation,
+    });
+
+    if(fgLocation) fgLocation.remove();
+}
+
+export async function stopBgLocationUpdates(){
+    await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME); 
+    await startFgLocationUpdates();
+}
+
+async function startFgLocationUpdates(){
+    fgLocation = await Location.watchPositionAsync({accuracy: Location.Accuracy.BestForNavigation}, ({ coords }) => {
+        const { accuracy, latitude, longitude } = coords;
+        const curPos = store.getState().currentPosition;
+
+        if(shouldUpdateCoordinates(accuracy, {latitude, longitude}, curPos)){
+            const coords = { latitude, longitude };
+            store.dispatch(setCurrentPosition(coords));
+            if(store.getState().runningInfo.isRunning) appendCoordinates(coords);
+        }
+    });
+}
+
 const useLocation = () => {
     const [errorMsg, setErrorMsg] = useState('');
     const currentPosition = useSelector(state => state.currentPosition);
@@ -20,25 +48,15 @@ const useLocation = () => {
         if(foregroundStatus !== 'granted') return;
         const { status: backgroundStatus } = await Location.requestBackgroundPermissionsAsync();
         if(backgroundStatus !== 'granted') return;
-        if(isDev){
-            // Location.watchPositionAsync({accuracy: Location.Accuracy.BestForNavigation}, ({ coords }) => {
-            //     const { accuracy, latitude, longitude } = coords;
-            //     if(shouldUpdateCoordinates(accuracy, {latitude, longitude}, curPos)){
-            //         dispatch(setCurrentPosition({latitude, longitude}));
-            //         curPos = {latitude, longitude};
-            //     }
-            // });
-        }
-        await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
-            accuracy: Location.Accuracy.BestForNavigation,
-        });
+
+        await startFgLocationUpdates();
     };
 
     useEffect(() => {
         getUserLocation();
     },[]);
 
-    return { currentPosition, errorMsg};
+    return { currentPosition, errorMsg, startBgLocationUpdates };
 }
 
 TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
@@ -47,7 +65,6 @@ TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
     }
     if (data) {
         const { locations } = data;
-        console.log(locations[0].coords)
         const { accuracy, latitude, longitude } = locations[0].coords;
         const curPos = store.getState().currentPosition;
 

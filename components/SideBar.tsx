@@ -162,7 +162,6 @@ const styles = StyleSheet.create({
         height: '100%',
         position: 'absolute',
         right: 0,
-        top: -24,
     },
     animatedLeftSideBg: {
         backgroundColor: 'black', 

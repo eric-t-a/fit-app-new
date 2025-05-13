@@ -10,52 +10,53 @@ interface RunningInfoProps{
     calories: number;
     start_time: null | Date;
     pace: string;
-    setListOpen: Dispatch<SetStateAction<boolean>>;
+    setListOpen?: Dispatch<SetStateAction<boolean>>;
+    aditionalStyles: any;
 }
 
-const RunningInfoView = ({ runningTime, distance, calories, start_time, pace, setListOpen }: RunningInfoProps) => {
+const RunningInfoView = ({ runningTime, distance, calories, start_time, pace, setListOpen, aditionalStyles = {} }: RunningInfoProps) => {
     const insets = useSafeAreaInsets();
 
     return(
-        <View style={{...styles.infoContainer, top: insets.top}}>
-            <View style={{...styles.infoInner}}>
+        <View style={{...styles.infoInner, ...aditionalStyles}}>
+            {setListOpen ? 
                 <TouchableOpacity 
                     style={{...styles.infoList}}
                     activeOpacity={0.6} 
                     onPress={() => setListOpen(true)}
                 >
                     <FontAwesome6 name="list-ul" size={24} color="white" />
-                </TouchableOpacity>
-                <View style={{paddingTop: 1, marginBottom: 24}}>
-                    <Text style={{...styles.infoText, ...styles.timeText}}>
-                    {runningTime}
+                </TouchableOpacity> 
+            : null}
+            <View style={{paddingTop: 1, marginBottom: 24}}>
+                <Text style={{...styles.infoText, ...styles.timeText}}>
+                {runningTime}
+                </Text>
+            </View>
+            <View style={styles.infoStats}>
+                <View style={styles.infoBlock}>
+                    <Text style={{...styles.infoTextValue, ...styles.infoText}}>
+                        {floatTo2Decimal(distance / 1000).toFixed(2)}
+                    </Text>
+                    <Text style={styles.infoText}>
+                        km
                     </Text>
                 </View>
-                <View style={styles.infoStats}>
-                    <View style={styles.infoBlock}>
-                        <Text style={{...styles.infoTextValue, ...styles.infoText}}>
-                            {floatTo2Decimal(distance / 1000).toFixed(2)}
-                        </Text>
-                        <Text style={styles.infoText}>
-                            km
-                        </Text>
-                    </View>
-                    <View style={styles.infoBlock}>
-                        <Text style={{...styles.infoTextValue, ...styles.infoText}}>
-                            {Math.floor(calories)}
-                        </Text>
-                        <Text style={styles.infoText}>
-                            kcal
-                        </Text>
-                    </View>
-                    <View style={styles.infoBlock}>
-                        <Text style={{...styles.infoTextValue, ...styles.infoText}}>
-                            {start_time ? pace : '00:00'}
-                        </Text>
-                        <Text style={styles.infoText}>
-                            min/km
-                        </Text>
-                    </View>
+                <View style={styles.infoBlock}>
+                    <Text style={{...styles.infoTextValue, ...styles.infoText}}>
+                        {Math.floor(calories)}
+                    </Text>
+                    <Text style={styles.infoText}>
+                        kcal
+                    </Text>
+                </View>
+                <View style={styles.infoBlock}>
+                    <Text style={{...styles.infoTextValue, ...styles.infoText}}>
+                        {start_time ? pace : '00:00'}
+                    </Text>
+                    <Text style={styles.infoText}>
+                        min/km
+                    </Text>
                 </View>
             </View>
         </View>
@@ -63,17 +64,6 @@ const RunningInfoView = ({ runningTime, distance, calories, start_time, pace, se
 }
 
 const styles = StyleSheet.create({
-    infoContainer: {
-        height: '30%',
-        maxHeight: 190,
-        backgroundColor: "#000",
-        position: "absolute",
-        left: 0,
-        right: 0,
-        borderBottomRightRadius: 17,
-        borderBottomLeftRadius: 17,
-        zIndex: 1,
-    },
     infoInner: {
         position: 'relative',
         flex: 1,

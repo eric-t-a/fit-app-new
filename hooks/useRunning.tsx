@@ -6,8 +6,6 @@ import { getData, storeData } from "../utils/storage";
 import { useEffect, useState } from "react";
 import { LatLng } from "react-native-maps";
 import { useDispatch, useSelector } from "react-redux";
-import { startBgLocationUpdates, stopBgLocationUpdates } from "./useLocation";
-
 
 
 var timerInterval: any = null;
@@ -75,7 +73,6 @@ const useRunning = () => {
     }
 
     async function startRunning(coord: LatLng) {
-        await startBgLocationUpdates();
         setRunningInfo({
             ...runningInfo, 
             isRunning: true, 
@@ -85,7 +82,6 @@ const useRunning = () => {
     }
 
     async function stopRunning(){
-        await stopBgLocationUpdates();
         setRunningTime(timeRunning(null));
         appendInfoToHistory({
             ...runningInfo,
